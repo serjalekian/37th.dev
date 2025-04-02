@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import vertexShader from "@/shaders/background.vert.glsl";
 import fragmentShader from "@/shaders/background.frag.glsl";
+import CanvasOverlay from "./CanvasOverlay";
 
 type CameraType = "perspective" | "orthographic";
 
@@ -71,7 +72,7 @@ export default function BackgroundCanvas() {
     controls.maxDistance = 10;
     controlsRef.current = controls;
 
-    const geometry = new THREE.TorusGeometry(1.1, 0.017, 16, 64, Math.PI * 2);
+    const geometry = new THREE.TorusGeometry(1.1, 0.17, 64, 128, Math.PI * 2);
 
     const material = new THREE.ShaderMaterial({
       vertexShader: vertexShader,
@@ -191,24 +192,7 @@ export default function BackgroundCanvas() {
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full -z-10"
       />
-      <div className="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-lg p-3 z-10">
-        <div className="flex gap-3 items-center">
-          {/* <button
-            onClick={toggleCameraType}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors"
-          >
-            {cameraType === "perspective"
-              ? "Switch to Orthographic"
-              : "Switch to Perspective"}
-          </button>
-          <div className="text-white text-sm">
-            Current:{" "}
-            <span className="font-semibold">
-              {cameraType === "perspective" ? "Perspective" : "Orthographic"}
-            </span>
-          </div> */}
-        </div>
-      </div>
+      <CanvasOverlay />
     </>
   );
 }
