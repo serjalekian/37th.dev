@@ -9,7 +9,6 @@ interface GlassProps extends React.HTMLAttributes<HTMLDivElement> {
 const Glass = React.forwardRef<HTMLDivElement, GlassProps>(
   (
     {
-      className,
       width = "w-[360px] lg:w-[900px]",
       height = "h-[40px]",
       ...props
