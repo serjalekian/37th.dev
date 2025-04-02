@@ -4,8 +4,8 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "37th.dev - Software Engineer & Designer",
-  description: "Personal website of Sergei Alekin, showcasing projects and experiments.",
+  title: "37th.dev",
+  description: "Experiments in software development and design.",
 };
 
 export default function RootLayout({
@@ -15,6 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
+      </head>
       <body className="antialiased">{children}</body>
     </html>
   );
