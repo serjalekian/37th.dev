@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
+import { ThemeProvider } from "@/lib/ThemeProvider";
+import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "37th.dev",
@@ -18,7 +20,12 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <ThemeProvider>
+          <Header />
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
