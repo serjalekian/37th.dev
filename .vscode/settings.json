@@ -1,4 +1,10 @@
 {
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "glsllint.additionalStageAssociations": {
+    "**/*.fragment.glsl": "frag",
+    "**/*.frag.glsl": "frag",
+    "**/*.vertex.glsl": "vert",
+    "**/*.vert.glsl": "vert"
+  }
 }

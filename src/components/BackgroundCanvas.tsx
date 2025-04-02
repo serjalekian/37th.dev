@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import vertexShader from "@/shaders/vertexShader.glsl";
-import fragmentShader from "@/shaders/fragmentShader.glsl";
+import vertexShader from "@/shaders/background.vert.glsl";
+import fragmentShader from "@/shaders/background.frag.glsl";
 
 export default function BackgroundCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -27,6 +27,7 @@ export default function BackgroundCanvas() {
     const renderer = new THREE.WebGLRenderer({
       canvas: canvas,
       antialias: true,
+      logarithmicDepthBuffer: true,
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -38,7 +39,10 @@ export default function BackgroundCanvas() {
       fragmentShader: fragmentShader,
       uniforms: {
         uTime: { value: 0.0 },
+        diffuse: { value: new THREE.Color(0x8080ff) },
+        opacity: { value: 1.0 },
       },
+      transparent: true,
       side: THREE.DoubleSide,
     });
     const circle = new THREE.Mesh(geometry, material);
