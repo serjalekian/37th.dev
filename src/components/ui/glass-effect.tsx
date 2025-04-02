@@ -8,16 +8,12 @@ interface GlassProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const Glass = React.forwardRef<HTMLDivElement, GlassProps>(
   (
-    {
-      width = "w-[360px] lg:w-[900px]",
-      height = "h-[40px]",
-      ...props
-    },
+    { width = "w-[360px] lg:w-[900px]", height = "h-[40px]", ...props },
     ref
   ) => {
     return (
       <div ref={ref} {...props}>
-        <div className="flex flex-col items-center justify-center w-full">
+        <div className="flex flex-col items-center justify-center w-full h-full">
           <div
             className={cn(
               "relative overflow-hidden rounded-b-2xl",
@@ -28,21 +24,21 @@ const Glass = React.forwardRef<HTMLDivElement, GlassProps>(
             <div className="pointer-events-none absolute bottom-0 z-10 h-full w-full overflow-hidden border border-[#f5f5f51a] rounded-b-2xl">
               <div className="glass-effect h-full w-full" />
             </div>
-            <svg className="w-full h-screen">
+            <svg className="w-full h-full">
               <defs>
                 <filter id="fractal-noise-glass">
                   <feTurbulence
-                    type="fractalNoise"
-                    baseFrequency="0.12 0.12"
+                    type="turbulence"
+                    baseFrequency="0.05 0.05"
                     numOctaves="1"
-                    result="warp"
+                    result="turbulence"
                   />
                   <feDisplacementMap
                     xChannelSelector="R"
-                    yChannelSelector="G"
-                    scale="10"
+                    yChannelSelector="B"
+                    scale="100"
                     in="SourceGraphic"
-                    in2="warp"
+                    in2="turbulence"
                   />
                 </filter>
               </defs>
