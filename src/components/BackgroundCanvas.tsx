@@ -1,13 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import vertexShader from "@/shaders/background.vert.glsl";
 import fragmentShader from "@/shaders/background.frag.glsl";
-import CanvasOverlay from "./CanvasOverlay";
+import noiseVertexShader from "@/shaders/noise.vert.glsl";
+import noiseFragmentShader from "@/shaders/noise.frag.glsl";
+import NoiseControls from "./NoiseControls";
+import { NoiseSettings } from "@/types/noise";
 
 type CameraType = "perspective" | "orthographic";
+
+// Default noise settings
+const DEFAULT_NOISE_SETTINGS: NoiseSettings = {
+  intensity: 0.037,
+  scale: 37.0,
+  speed: 0.0,
+  distortion: 0.05,
+};
 
 export default function BackgroundCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -19,10 +33,33 @@ export default function BackgroundCanvas() {
   const perspectiveCameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const orthographicCameraRef = useRef<THREE.OrthographicCamera | null>(null);
   const torusRef = useRef<THREE.Mesh | null>(null);
+  const composerRef = useRef<EffectComposer | null>(null);
+  const noisePassRef = useRef<ShaderPass | null>(null);
+  const [noiseSettings, setNoiseSettings] = useState<NoiseSettings>(
+    DEFAULT_NOISE_SETTINGS
+  );
 
   function rotateTorus(mesh: THREE.Mesh, time: number) {
     mesh.rotation.y = -Math.sin(time * 0.037) * 3.3;
   }
+
+  // Handler for noise settings changes
+  const handleNoiseSettingsChange = useCallback(
+    (newSettings: NoiseSettings) => {
+      setNoiseSettings(newSettings);
+
+      // Update noise pass uniforms if it exists
+      if (noisePassRef.current && noisePassRef.current.uniforms) {
+        noisePassRef.current.uniforms.uNoiseIntensity.value =
+          newSettings.intensity;
+        noisePassRef.current.uniforms.uNoiseScale.value = newSettings.scale;
+        noisePassRef.current.uniforms.uNoiseSpeed.value = newSettings.speed;
+        noisePassRef.current.uniforms.uDistortionAmount.value =
+          newSettings.distortion;
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -98,12 +135,50 @@ export default function BackgroundCanvas() {
     const ambientLight = new THREE.AmbientLight(0x404080, 0.5);
     scene.add(ambientLight);
 
+    // Setup EffectComposer and passes
+    const currentCamera =
+      cameraType === "perspective"
+        ? perspectiveCameraRef.current
+        : orthographicCameraRef.current;
+
+    const composer = new EffectComposer(renderer);
+
+    // Create and add the render pass
+    const renderPass = new RenderPass(scene, currentCamera!);
+    composer.addPass(renderPass);
+
+    // Create and add the noise shader pass
+    const noiseShader = {
+      uniforms: {
+        tDiffuse: { value: null },
+        uTime: { value: 0.0 },
+        uNoiseIntensity: { value: noiseSettings.intensity },
+        uNoiseScale: { value: noiseSettings.scale },
+        uNoiseSpeed: { value: noiseSettings.speed },
+        uDistortionAmount: { value: noiseSettings.distortion },
+      },
+      vertexShader: noiseVertexShader,
+      fragmentShader: noiseFragmentShader,
+    };
+
+    const noisePass = new ShaderPass(noiseShader);
+    noisePass.renderToScreen = true;
+    composer.addPass(noisePass);
+
+    composerRef.current = composer;
+    noisePassRef.current = noisePass;
+
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
       const elapsedTime = clockRef.current.getElapsedTime();
       material.uniforms.uTime.value = elapsedTime;
+
+      // Update noise shader uniforms
+      if (noisePass.uniforms.uTime) {
+        noisePass.uniforms.uTime.value = elapsedTime;
+      }
 
       const currentCamera =
         cameraType === "perspective"
@@ -121,8 +196,9 @@ export default function BackgroundCanvas() {
       if (!torusRef.current) return;
       rotateTorus(torusRef.current, elapsedTime);
 
-      if (rendererRef.current && currentCamera) {
-        rendererRef.current.render(scene, currentCamera);
+      // Render using composer instead of directly
+      if (composerRef.current) {
+        composerRef.current.render();
       }
     };
     animate();
@@ -145,6 +221,11 @@ export default function BackgroundCanvas() {
 
       rendererRef.current.setSize(window.innerWidth, window.innerHeight);
       rendererRef.current.setPixelRatio(window.devicePixelRatio);
+
+      // Update composer size
+      if (composerRef.current) {
+        composerRef.current.setSize(window.innerWidth, window.innerHeight);
+      }
     };
     window.addEventListener("resize", handleResize);
 
@@ -159,11 +240,12 @@ export default function BackgroundCanvas() {
 
       if (rendererRef.current) rendererRef.current.dispose();
       if (controlsRef.current) controlsRef.current.dispose();
+      if (composerRef.current) composerRef.current.dispose();
 
       scene.remove(circle);
       scene.remove(ambientLight);
     };
-  }, [cameraType]);
+  }, [cameraType, noiseSettings]);
 
   // Update controls when camera type changes
   useEffect(() => {
@@ -178,13 +260,15 @@ export default function BackgroundCanvas() {
       controlsRef.current.object = currentCamera;
       controlsRef.current.update();
     }
-  }, [cameraType]);
 
-  // const toggleCameraType = () => {
-  //   setCameraType((prev) =>
-  //     prev === "perspective" ? "orthographic" : "perspective"
-  //   );
-  // };
+    // Update renderPass camera reference when camera type changes
+    if (composerRef.current && composerRef.current.passes.length > 0) {
+      const renderPass = composerRef.current.passes[0] as RenderPass;
+      if (renderPass && currentCamera) {
+        renderPass.camera = currentCamera;
+      }
+    }
+  }, [cameraType]);
 
   return (
     <>
@@ -192,7 +276,10 @@ export default function BackgroundCanvas() {
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full -z-10"
       />
-      <CanvasOverlay />
+      <NoiseControls
+        initialSettings={DEFAULT_NOISE_SETTINGS}
+        onChange={handleNoiseSettingsChange}
+      />
     </>
   );
 }
