@@ -68,7 +68,7 @@ export default function NoiseControls({
                 type="range"
                 name="intensity"
                 min="0"
-                max="0.1"
+                max="1.0"
                 step="0.001"
                 value={settings.intensity}
                 onChange={handleChange}
@@ -84,7 +84,7 @@ export default function NoiseControls({
                 type="range"
                 name="scale"
                 min="1"
-                max="50"
+                max="200"
                 step="0.5"
                 value={settings.scale}
                 onChange={handleChange}
@@ -100,7 +100,7 @@ export default function NoiseControls({
                 type="range"
                 name="speed"
                 min="0"
-                max="1"
+                max="10"
                 step="0.01"
                 value={settings.speed}
                 onChange={handleChange}
@@ -116,8 +116,8 @@ export default function NoiseControls({
                 type="range"
                 name="distortion"
                 min="0"
-                max="0.05"
-                step="0.001"
+                max="10"
+                step="0.01"
                 value={settings.distortion}
                 onChange={handleChange}
                 className="w-full"

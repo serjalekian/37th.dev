@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -10,16 +10,15 @@ import vertexShader from "@/shaders/background.vert.glsl";
 import fragmentShader from "@/shaders/background.frag.glsl";
 import noiseVertexShader from "@/shaders/noise.vert.glsl";
 import noiseFragmentShader from "@/shaders/noise.frag.glsl";
-import NoiseControls from "./NoiseControls";
 import { NoiseSettings } from "@/types/noise";
 
 type CameraType = "perspective" | "orthographic";
 
 // Default noise settings
 const DEFAULT_NOISE_SETTINGS: NoiseSettings = {
-  intensity: 0.037,
-  scale: 37.0,
-  speed: 0.0,
+  intensity: 0.1,
+  scale: 1.0,
+  speed: 0.37,
   distortion: 0.05,
 };
 
@@ -35,31 +34,29 @@ export default function BackgroundCanvas() {
   const torusRef = useRef<THREE.Mesh | null>(null);
   const composerRef = useRef<EffectComposer | null>(null);
   const noisePassRef = useRef<ShaderPass | null>(null);
-  const [noiseSettings, setNoiseSettings] = useState<NoiseSettings>(
-    DEFAULT_NOISE_SETTINGS
-  );
+  const [noiseSettings] = useState<NoiseSettings>(DEFAULT_NOISE_SETTINGS);
 
   function rotateTorus(mesh: THREE.Mesh, time: number) {
     mesh.rotation.y = -Math.sin(time * 0.037) * 3.3;
   }
 
   // Handler for noise settings changes
-  const handleNoiseSettingsChange = useCallback(
-    (newSettings: NoiseSettings) => {
-      setNoiseSettings(newSettings);
+  // const handleNoiseSettingsChange = useCallback(
+  //   (newSettings: NoiseSettings) => {
+  //     setNoiseSettings(newSettings);
 
-      // Update noise pass uniforms if it exists
-      if (noisePassRef.current && noisePassRef.current.uniforms) {
-        noisePassRef.current.uniforms.uNoiseIntensity.value =
-          newSettings.intensity;
-        noisePassRef.current.uniforms.uNoiseScale.value = newSettings.scale;
-        noisePassRef.current.uniforms.uNoiseSpeed.value = newSettings.speed;
-        noisePassRef.current.uniforms.uDistortionAmount.value =
-          newSettings.distortion;
-      }
-    },
-    []
-  );
+  //     // Update noise pass uniforms if it exists
+  //     if (noisePassRef.current && noisePassRef.current.uniforms) {
+  //       noisePassRef.current.uniforms.uNoiseIntensity.value =
+  //         newSettings.intensity;
+  //       noisePassRef.current.uniforms.uNoiseScale.value = newSettings.scale;
+  //       noisePassRef.current.uniforms.uNoiseSpeed.value = newSettings.speed;
+  //       noisePassRef.current.uniforms.uDistortionAmount.value =
+  //         newSettings.distortion;
+  //     }
+  //   },
+  //   []
+  // );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -276,10 +273,10 @@ export default function BackgroundCanvas() {
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full -z-10"
       />
-      <NoiseControls
+      {/* <NoiseControls
         initialSettings={DEFAULT_NOISE_SETTINGS}
         onChange={handleNoiseSettingsChange}
-      />
+      /> */}
     </>
   );
 }
